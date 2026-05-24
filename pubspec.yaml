@@ -1,10 +1,10 @@
 name: superso_dart
-description: Official Flutter & Dart SDK for Superso Backend.
+description: Dart SDK for Superso Backend Services.
 version: 1.0.0
 
-homepage: https://github.com/abdullahiiissacksheikh-max/superso_dart
-repository: https://github.com/abdullahiiissacksheikh-max/superso_dart
-issue_tracker: https://github.com/abdullahiiissacksheikh-max/superso_dart/issues
+homepage: https://github.com/abdullahiissacksheikh-max/superso_dart
+repository: https://github.com/abdullahiissacksheikh-max/superso_dart
+issue_tracker: https://github.com/abdullahiissacksheikh-max/superso_dart/issues
 
 environment:
   sdk: ^3.10.4

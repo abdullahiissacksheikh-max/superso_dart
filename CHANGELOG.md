@@ -1,3 +1,9 @@
-## 0.0.1
+## 1.0.0
 
-* TODO: Describe initial release.
+- Initial release
+- Authentication support
+- Database support
+- Storage support
+- Realtime support
+- Notifications support
+- AI utilities
