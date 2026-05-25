@@ -24,31 +24,17 @@ class AuthResponse {
   final Map<String, dynamic>? user;
   final String? message;
 
-  AuthResponse({
-    this.token,
-    this.refreshToken,
-    this.user,
-    this.message,
-  });
+  AuthResponse({this.token, this.refreshToken, this.user, this.message});
 
-  factory AuthResponse.fromJson(
-    Map<String, dynamic> json,
-  ) {
+  factory AuthResponse.fromJson(Map<String, dynamic> json) {
     return AuthResponse(
-      token:
-          json["token"] ??
-          json["data"]?["token"],
+      token: json["token"] ?? json["data"]?["token"],
 
-      refreshToken:
-          json["refresh_token"] ??
-          json["data"]?["refresh_token"],
+      refreshToken: json["refresh_token"] ?? json["data"]?["refresh_token"],
 
-      user:
-          json["user"] ??
-          json["data"]?["user"],
+      user: json["user"] ?? json["data"]?["user"],
 
-      message:
-          json["message"],
+      message: json["message"],
     );
   }
 }
@@ -66,16 +52,11 @@ Future<Map<String, dynamic>> request(
 }) async {
   final headers = {
     "Content-Type": "application/json",
-    "X-Superso-Project-Key":
-        client.apiKey,
+    "X-Superso-Project-Key": client.apiKey,
   };
 
-  if (
-    auth &&
-    _accessToken != null
-  ) {
-    headers["Authorization"] =
-        "Bearer $_accessToken";
+  if (auth && _accessToken != null) {
+    headers["Authorization"] = "Bearer $_accessToken";
   }
 
   final uri = Uri.parse(
@@ -89,9 +70,7 @@ Future<Map<String, dynamic>> request(
       response = await http.post(
         uri,
         headers: headers,
-        body: body != null
-            ? jsonEncode(body)
-            : null,
+        body: body != null ? jsonEncode(body) : null,
       );
       break;
 
@@ -99,9 +78,7 @@ Future<Map<String, dynamic>> request(
       response = await http.put(
         uri,
         headers: headers,
-        body: body != null
-            ? jsonEncode(body)
-            : null,
+        body: body != null ? jsonEncode(body) : null,
       );
       break;
 
@@ -109,35 +86,23 @@ Future<Map<String, dynamic>> request(
       response = await http.patch(
         uri,
         headers: headers,
-        body: body != null
-            ? jsonEncode(body)
-            : null,
+        body: body != null ? jsonEncode(body) : null,
       );
       break;
 
     case "DELETE":
-      response = await http.delete(
-        uri,
-        headers: headers,
-      );
+      response = await http.delete(uri, headers: headers);
       break;
 
     default:
-      response = await http.get(
-        uri,
-        headers: headers,
-      );
+      response = await http.get(uri, headers: headers);
   }
 
-  final data =
-      jsonDecode(response.body);
+  final data = jsonDecode(response.body);
 
-if (response.statusCode >= 400) {
-  throw Exception(
-    data["message"] ??
-        "Request failed",
-  );
-}
+  if (response.statusCode >= 400) {
+    throw Exception(data["message"] ?? "Request failed");
+  }
 
   return data;
 }
@@ -146,17 +111,12 @@ if (response.statusCode >= 400) {
 // SAVE SESSION
 // ======================================
 
-void saveSession(
-  AuthResponse response,
-) {
-  _accessToken =
-      response.token;
+void saveSession(AuthResponse response) {
+  _accessToken = response.token;
 
-  _refreshToken =
-      response.refreshToken;
+  _refreshToken = response.refreshToken;
 
-  _currentUser =
-      response.user;
+  _currentUser = response.user;
 }
 
 // ======================================
@@ -188,29 +148,66 @@ void clearSession() {
 // ======================================
 // REGISTER
 // ======================================
-
 Future<AuthResponse> register(
   SupersoClient client, {
   required String email,
   required String password,
+  String? username,
   String? displayName,
+  String? avatarUrl,
+  String? bannerUrl,
+  String? bio,
+  String? website,
+  String? location,
+  String? gender,
+  DateTime? dateOfBirth,
 }) async {
+  final body = <String, dynamic>{"email": email, "password": password};
+
+  if (username != null) {
+    body["username"] = username;
+  }
+
+  if (displayName != null) {
+    body["display_name"] = displayName;
+  }
+
+  if (avatarUrl != null) {
+    body["avatar_url"] = avatarUrl;
+  }
+
+  if (bannerUrl != null) {
+    body["banner_url"] = bannerUrl;
+  }
+
+  if (bio != null) {
+    body["bio"] = bio;
+  }
+
+  if (website != null) {
+    body["website"] = website;
+  }
+
+  if (location != null) {
+    body["location"] = location;
+  }
+
+  if (gender != null) {
+    body["gender"] = gender;
+  }
+
+  if (dateOfBirth != null) {
+    body["date_of_birth"] = dateOfBirth.toIso8601String();
+  }
+
   final result = await request(
     client,
     "/auth/register",
     method: "POST",
-    body: {
-      "email": email,
-      "password": password,
-      "display_name":
-          displayName,
-    },
+    body: body,
   );
 
-  final auth =
-      AuthResponse.fromJson(
-    result,
-  );
+  final auth = AuthResponse.fromJson(result);
 
   saveSession(auth);
 
@@ -220,26 +217,19 @@ Future<AuthResponse> register(
 // ======================================
 // LOGIN
 // ======================================
-
 Future<AuthResponse> login(
   SupersoClient client, {
-  required String email,
+  required String identifier,
   required String password,
 }) async {
   final result = await request(
     client,
     "/auth/login",
     method: "POST",
-    body: {
-      "email": email,
-      "password": password,
-    },
+    body: {"identifier": identifier, "password": password},
   );
 
-  final auth =
-      AuthResponse.fromJson(
-    result,
-  );
+  final auth = AuthResponse.fromJson(result);
 
   saveSession(auth);
 
@@ -250,15 +240,14 @@ Future<AuthResponse> login(
 // LOGOUT
 // ======================================
 
-Future<void> logout(
-  SupersoClient client,
-) async {
+Future<void> logout(SupersoClient client) async {
   try {
     await request(
       client,
       "/auth/logout",
       method: "POST",
       auth: true,
+      body: {"refresh_token": _refreshToken},
     );
   } catch (_) {}
 
@@ -269,15 +258,8 @@ Future<void> logout(
 // CURRENT USER
 // ======================================
 
-Future<Map<String, dynamic>>
-    getCurrentUser(
-  SupersoClient client,
-) async {
-  final result = await request(
-    client,
-    "/auth/user/me",
-    auth: true,
-  );
+Future<Map<String, dynamic>> getCurrentUser(SupersoClient client) async {
+  final result = await request(client, "/auth/user/me", auth: true);
 
   return result;
 }
@@ -285,54 +267,81 @@ Future<Map<String, dynamic>>
 // ======================================
 // UPDATE PROFILE
 // ======================================
-
-Future<Map<String, dynamic>>
-    updateProfile(
+Future<Map<String, dynamic>> updateProfile(
   SupersoClient client, {
   String? displayName,
-  String? bio,
+  String? username,
   String? avatarUrl,
+  String? bannerUrl,
+  String? bio,
+  String? website,
+  String? location,
+  String? gender,
+  DateTime? dateOfBirth,
 }) async {
+  final body = <String, dynamic>{};
+
+  if (displayName != null) {
+    body["display_name"] = displayName;
+  }
+
+  if (username != null) {
+    body["username"] = username;
+  }
+
+  if (avatarUrl != null) {
+    body["avatar_url"] = avatarUrl;
+  }
+
+  if (bannerUrl != null) {
+    body["banner_url"] = bannerUrl;
+  }
+
+  if (bio != null) {
+    body["bio"] = bio;
+  }
+
+  if (website != null) {
+    body["website"] = website;
+  }
+
+  if (location != null) {
+    body["location"] = location;
+  }
+
+  if (gender != null) {
+    body["gender"] = gender;
+  }
+
+  if (dateOfBirth != null) {
+    body["date_of_birth"] = dateOfBirth.toIso8601String();
+  }
+
   final result = await request(
     client,
     "/auth/user/profile",
     method: "PUT",
     auth: true,
-    body: {
-      "display_name":
-          displayName,
-      "bio": bio,
-      "avatar_url":
-          avatarUrl,
-    },
+    body: body,
   );
 
   return result;
 }
-
 // ======================================
 // CHANGE PASSWORD
 // ======================================
 
-Future<Map<String, dynamic>>
-    changePassword(
+Future<Map<String, dynamic>> changePassword(
   SupersoClient client, {
-  required String
-      currentPassword,
-  required String
-      newPassword,
+  required String currentPassword,
+  required String newPassword,
 }) async {
   return await request(
     client,
     "/auth/user/change-password",
     method: "POST",
     auth: true,
-    body: {
-      "current_password":
-          currentPassword,
-      "new_password":
-          newPassword,
-    },
+    body: {"current_password": currentPassword, "new_password": newPassword},
   );
 }
 
@@ -340,8 +349,7 @@ Future<Map<String, dynamic>>
 // VERIFY EMAIL OTP
 // ======================================
 
-Future<Map<String, dynamic>>
-    verifyEmail(
+Future<Map<String, dynamic>> verifyEmail(
   SupersoClient client, {
   required String email,
   required String otp,
@@ -350,9 +358,24 @@ Future<Map<String, dynamic>>
     client,
     "/auth/verify-email",
     method: "POST",
-    body: {
-      "email": email,
-      "otp": otp,
-    },
+    body: {"email": email, "otp": otp},
+  );
+}
+
+// ======================================
+// Change Email
+// ======================================
+
+Future<Map<String, dynamic>> changeEmail(
+  SupersoClient client, {
+  required String newEmail,
+  required String password,
+}) async {
+  return await request(
+    client,
+    "/auth/user/change-email",
+    method: "POST",
+    auth: true,
+    body: {"new_email": newEmail, "current_password": password},
   );
 }
