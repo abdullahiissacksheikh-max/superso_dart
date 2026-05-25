@@ -247,17 +247,13 @@ Future<void> logout(SupersoClient client) async {
     print("REFRESH TOKEN: $_refreshToken");
 
     // Only call backend if refresh token exists
-    if (_refreshToken != null &&
-        _refreshToken!.isNotEmpty) {
-
+    if (_refreshToken != null && _refreshToken!.isNotEmpty) {
       final result = await request(
         client,
         "/auth/logout",
         method: "POST",
         auth: true,
-        body: {
-          "refresh_token": _refreshToken,
-        },
+        body: {"refresh_token": _refreshToken},
       );
 
       print("LOGOUT RESPONSE: $result");
@@ -282,6 +278,7 @@ Future<Map<String, dynamic>> getCurrentUser(SupersoClient client) async {
 
   return result;
 }
+
 // ======================================
 // UPDATE PROFILE
 // ======================================
@@ -302,92 +299,72 @@ Future<Map<String, dynamic>> updateProfile(
   // ================================
   // DISPLAY NAME
   // ================================
-  if (displayName != null &&
-      displayName.trim().isNotEmpty) {
-    body["display_name"] =
-        displayName.trim();
+  if (displayName != null && displayName.trim().isNotEmpty) {
+    body["display_name"] = displayName.trim();
   }
 
   // ================================
   // USERNAME NORMALIZATION
   // ================================
-  if (username != null &&
-      username.trim().isNotEmpty) {
-    body["username"] = username
-        .trim()
-        .toLowerCase()
-        .replaceAll(' ', '');
+  if (username != null && username.trim().isNotEmpty) {
+    body["username"] = username.trim().toLowerCase().replaceAll(' ', '');
   }
 
   // ================================
   // AVATAR URL VALIDATION
   // ================================
-  if (avatarUrl != null &&
-      avatarUrl.trim().isNotEmpty) {
-    final normalizedAvatar =
-        avatarUrl.trim();
+  if (avatarUrl != null && avatarUrl.trim().isNotEmpty) {
+    final normalizedAvatar = avatarUrl.trim();
 
     if (normalizedAvatar.startsWith('http://') ||
         normalizedAvatar.startsWith('https://')) {
-      body["avatar_url"] =
-          normalizedAvatar;
+      body["avatar_url"] = normalizedAvatar;
     }
   }
 
   // ================================
   // BANNER URL VALIDATION
   // ================================
-  if (bannerUrl != null &&
-      bannerUrl.trim().isNotEmpty) {
-    final normalizedBanner =
-        bannerUrl.trim();
+  if (bannerUrl != null && bannerUrl.trim().isNotEmpty) {
+    final normalizedBanner = bannerUrl.trim();
 
     if (normalizedBanner.startsWith('http://') ||
         normalizedBanner.startsWith('https://')) {
-      body["banner_url"] =
-          normalizedBanner;
+      body["banner_url"] = normalizedBanner;
     }
   }
 
   // ================================
   // BIO
   // ================================
-  if (bio != null &&
-      bio.trim().isNotEmpty) {
+  if (bio != null && bio.trim().isNotEmpty) {
     body["bio"] = bio.trim();
   }
 
   // ================================
   // WEBSITE VALIDATION
   // ================================
-  if (website != null &&
-      website.trim().isNotEmpty) {
-    final normalizedWebsite =
-        website.trim();
+  if (website != null && website.trim().isNotEmpty) {
+    final normalizedWebsite = website.trim();
 
     if (normalizedWebsite.startsWith('http://') ||
         normalizedWebsite.startsWith('https://')) {
-      body["website"] =
-          normalizedWebsite;
+      body["website"] = normalizedWebsite;
     }
   }
 
   // ================================
   // LOCATION
   // ================================
-  if (location != null &&
-      location.trim().isNotEmpty) {
-    body["location"] =
-        location.trim();
+  if (location != null && location.trim().isNotEmpty) {
+    body["location"] = location.trim();
   }
 
   // ================================
   // GENDER NORMALIZATION
   // ================================
-  if (gender != null &&
-      gender.trim().isNotEmpty) {
-    body["gender"] =
-        gender.trim().toLowerCase();
+  if (gender != null && gender.trim().isNotEmpty) {
+    body["gender"] = gender.trim().toLowerCase();
   }
 
   // ================================
@@ -396,19 +373,13 @@ Future<Map<String, dynamic>> updateProfile(
   // YYYY-MM-DD
   // ================================
   if (dateOfBirth != null) {
-    body["date_of_birth"] =
-        dateOfBirth
-            .toIso8601String()
-            .split("T")
-            .first;
+    body["date_of_birth"] = dateOfBirth.toIso8601String().split("T").first;
   }
 
   // ================================
   // DEBUG LOGGING
   // ================================
-  print(
-  "UpdateProfile body: $body",
-);
+  print("UpdateProfile body: $body");
 
   final result = await request(
     client,
@@ -471,4 +442,35 @@ Future<Map<String, dynamic>> changeEmail(
     auth: true,
     body: {"new_email": newEmail, "current_password": password},
   );
+}
+
+// ======================================
+// GET USER BY ID
+// ======================================
+
+Future<Map<String, dynamic>> getUserById(
+  SupersoClient client,
+  String userId,
+) async {
+  final response = await request(client, "/auth/user/$userId", auth: true);
+
+  return response;
+}
+
+// ======================================
+// GET USERS LIST
+// ======================================
+
+Future<Map<String, dynamic>> getUsers(
+  SupersoClient client, {
+  int page = 1,
+  int limit = 20,
+}) async {
+  final response = await request(
+    client,
+    "/auth/users?page=$page&limit=$limit",
+    auth: true,
+  );
+
+  return response;
 }
