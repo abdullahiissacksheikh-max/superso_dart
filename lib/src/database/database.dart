@@ -86,19 +86,6 @@ Future<Map<String, dynamic>> _request(
   return data;
 }
 
-// =====================================
-// QUERY OPTIONS
-// =====================================
-
-class QueryOptions {
-  final int? limit;
-  final int? offset;
-  final String? sort;
-  final String? order;
-  final Map<String, dynamic>? filters;
-
-  QueryOptions({this.limit, this.offset, this.sort, this.order, this.filters});
-}
 
 // =====================================
 // BUILD QUERY
@@ -157,6 +144,7 @@ Future<Map<String, dynamic>> createDocument(
   );
 }
 
+
 // =====================================
 // GET DOCUMENTS
 // =====================================
@@ -167,6 +155,63 @@ Future<Map<String, dynamic>> getDocuments(
   QueryOptions? query,
   bool auth = false,
 }) async {
+
+  // =====================================
+  // USE ADVANCED QUERY ENGINE
+  // =====================================
+
+  if (query?.where != null && query!.where!.isNotEmpty) {
+
+    final Map<String, dynamic> whereMap = {};
+
+    for (final filter in query.where!) {
+      whereMap.addAll(filter.toJson());
+    }
+
+    // IMPORTANT:
+    // Explicit dynamic map type
+    final Map<String, dynamic> body = {
+      "where": whereMap,
+    };
+
+    // =====================================
+    // ORDER
+    // =====================================
+
+    if (query.sort != null) {
+      body["orderBy"] = [
+        {
+          "field": query.sort,
+          "dir": query.order ?? "desc",
+        }
+      ];
+    }
+
+    // =====================================
+    // PAGINATION
+    // =====================================
+
+    if (query.limit != null) {
+      body["limit"] = query.limit;
+    }
+
+    if (query.offset != null) {
+      body["offset"] = query.offset;
+    }
+
+    return await _request(
+      client,
+      "/db/$collection/query",
+      method: "POST",
+      body: body,
+      auth: auth,
+    );
+  }
+
+  // =====================================
+  // FALLBACK SIMPLE QUERY
+  // =====================================
+
   return await _request(
     client,
     "/db/$collection${buildQuery(query)}",
@@ -358,4 +403,50 @@ Future<Map<String, dynamic>> searchDocuments(
   return await queryDocuments(client, collection, {
     "search": search,
   }, auth: auth);
+}
+
+
+// =====================================
+// ADVANCED QUERY FILTERS
+// =====================================
+
+class QueryFilter {
+  final String field;
+  final String operator;
+  final dynamic value;
+
+  QueryFilter({
+    required this.field,
+    required this.operator,
+    required this.value,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      field: {
+        operator: value,
+      },
+    };
+  }
+}
+class QueryOptions {
+  final int? limit;
+  final int? offset;
+  final String? sort;
+  final String? order;
+
+  // OLD SIMPLE FILTERS
+  final Map<String, dynamic>? filters;
+
+  // NEW ADVANCED FILTERS
+  final List<QueryFilter>? where;
+
+  QueryOptions({
+    this.limit,
+    this.offset,
+    this.sort,
+    this.order,
+    this.filters,
+    this.where,
+  });
 }
