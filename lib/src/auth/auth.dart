@@ -228,6 +228,7 @@ Future<AuthResponse> login(
     method: "POST",
     body: {"identifier": identifier, "password": password},
   );
+  print("LOGIN RESPONSE: $result");
 
   final auth = AuthResponse.fromJson(result);
 
@@ -242,18 +243,36 @@ Future<AuthResponse> login(
 
 Future<void> logout(SupersoClient client) async {
   try {
-    await request(
-      client,
-      "/auth/logout",
-      method: "POST",
-      auth: true,
-      body: {"refresh_token": _refreshToken},
-    );
-  } catch (_) {}
+    print("ACCESS TOKEN: $_accessToken");
+    print("REFRESH TOKEN: $_refreshToken");
 
+    // Only call backend if refresh token exists
+    if (_refreshToken != null &&
+        _refreshToken!.isNotEmpty) {
+
+      final result = await request(
+        client,
+        "/auth/logout",
+        method: "POST",
+        auth: true,
+        body: {
+          "refresh_token": _refreshToken,
+        },
+      );
+
+      print("LOGOUT RESPONSE: $result");
+    } else {
+      print("No refresh token found");
+    }
+  } catch (e) {
+    print("LOGOUT ERROR: $e");
+  }
+
+  // Always clear local session
   clearSession();
-}
 
+  print("Local session cleared");
+}
 // ======================================
 // CURRENT USER
 // ======================================
