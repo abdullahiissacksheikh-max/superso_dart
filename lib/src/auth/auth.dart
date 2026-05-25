@@ -263,7 +263,6 @@ Future<Map<String, dynamic>> getCurrentUser(SupersoClient client) async {
 
   return result;
 }
-
 // ======================================
 // UPDATE PROFILE
 // ======================================
@@ -281,41 +280,116 @@ Future<Map<String, dynamic>> updateProfile(
 }) async {
   final body = <String, dynamic>{};
 
-  if (displayName != null) {
-    body["display_name"] = displayName;
+  // ================================
+  // DISPLAY NAME
+  // ================================
+  if (displayName != null &&
+      displayName.trim().isNotEmpty) {
+    body["display_name"] =
+        displayName.trim();
   }
 
-  if (username != null) {
-    body["username"] = username;
+  // ================================
+  // USERNAME NORMALIZATION
+  // ================================
+  if (username != null &&
+      username.trim().isNotEmpty) {
+    body["username"] = username
+        .trim()
+        .toLowerCase()
+        .replaceAll(' ', '');
   }
 
-  if (avatarUrl != null) {
-    body["avatar_url"] = avatarUrl;
+  // ================================
+  // AVATAR URL VALIDATION
+  // ================================
+  if (avatarUrl != null &&
+      avatarUrl.trim().isNotEmpty) {
+    final normalizedAvatar =
+        avatarUrl.trim();
+
+    if (normalizedAvatar.startsWith('http://') ||
+        normalizedAvatar.startsWith('https://')) {
+      body["avatar_url"] =
+          normalizedAvatar;
+    }
   }
 
-  if (bannerUrl != null) {
-    body["banner_url"] = bannerUrl;
+  // ================================
+  // BANNER URL VALIDATION
+  // ================================
+  if (bannerUrl != null &&
+      bannerUrl.trim().isNotEmpty) {
+    final normalizedBanner =
+        bannerUrl.trim();
+
+    if (normalizedBanner.startsWith('http://') ||
+        normalizedBanner.startsWith('https://')) {
+      body["banner_url"] =
+          normalizedBanner;
+    }
   }
 
-  if (bio != null) {
-    body["bio"] = bio;
+  // ================================
+  // BIO
+  // ================================
+  if (bio != null &&
+      bio.trim().isNotEmpty) {
+    body["bio"] = bio.trim();
   }
 
-  if (website != null) {
-    body["website"] = website;
+  // ================================
+  // WEBSITE VALIDATION
+  // ================================
+  if (website != null &&
+      website.trim().isNotEmpty) {
+    final normalizedWebsite =
+        website.trim();
+
+    if (normalizedWebsite.startsWith('http://') ||
+        normalizedWebsite.startsWith('https://')) {
+      body["website"] =
+          normalizedWebsite;
+    }
   }
 
-  if (location != null) {
-    body["location"] = location;
+  // ================================
+  // LOCATION
+  // ================================
+  if (location != null &&
+      location.trim().isNotEmpty) {
+    body["location"] =
+        location.trim();
   }
 
-  if (gender != null) {
-    body["gender"] = gender;
+  // ================================
+  // GENDER NORMALIZATION
+  // ================================
+  if (gender != null &&
+      gender.trim().isNotEmpty) {
+    body["gender"] =
+        gender.trim().toLowerCase();
   }
 
+  // ================================
+  // DATE OF BIRTH
+  // Backend-friendly format:
+  // YYYY-MM-DD
+  // ================================
   if (dateOfBirth != null) {
-    body["date_of_birth"] = dateOfBirth.toIso8601String();
+    body["date_of_birth"] =
+        dateOfBirth
+            .toIso8601String()
+            .split("T")
+            .first;
   }
+
+  // ================================
+  // DEBUG LOGGING
+  // ================================
+  print(
+  "UpdateProfile body: $body",
+);
 
   final result = await request(
     client,
