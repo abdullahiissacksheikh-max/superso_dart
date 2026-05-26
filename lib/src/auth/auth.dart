@@ -463,12 +463,71 @@ Future<Map<String, dynamic>> getUserById(
 
 Future<Map<String, dynamic>> getUsers(
   SupersoClient client, {
-  int page = 1,
-  int limit = 20,
+  int? page,
+  int? limit,
+  String? gender,
+  String? location,
+  bool? hasGender,
+  bool? hasLocation,
+  bool? hasDateOfBirth,
+  String? search,
+  String? sort,
+  String? order,
 }) async {
+  final query = <String, String>{};
+
+  if (page != null) {
+    query['page'] = page.toString();
+  }
+
+  if (limit != null) {
+    query['limit'] = limit.toString();
+  }
+
+  if (gender != null) {
+    query['gender'] = gender;
+  }
+
+  if (location != null) {
+    query['location'] = location;
+  }
+
+  if (hasGender != null) {
+    query['has_gender'] = hasGender.toString();
+  }
+
+  if (hasLocation != null) {
+    query['has_location'] = hasLocation.toString();
+  }
+
+  if (hasDateOfBirth != null) {
+    query['has_date_of_birth'] =
+        hasDateOfBirth.toString();
+  }
+
+  if (search != null) {
+    query['search'] = search;
+  }
+
+  if (sort != null) {
+    query['sort'] = sort;
+  }
+
+  if (order != null) {
+    query['order'] = order;
+  }
+
+  final uriQuery = Uri(
+    queryParameters: query,
+  ).query;
+
+  final endpoint = uriQuery.isEmpty
+      ? '/auth/users'
+      : '/auth/users?$uriQuery';
+
   final response = await request(
     client,
-    "/auth/users?page=$page&limit=$limit",
+    endpoint,
     auth: true,
   );
 
